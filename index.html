@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Stopwatch</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .header {
+      margin-bottom: 40px;
+      animation: fadeIn 1s ease-out;
+    }
+
+    .header h1 {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      background: linear-gradient(to right, #ff7e5f, #feb47b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .header .subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 300;
+      letter-spacing: 2px;
+    }
+
+    .stopwatch-container {
+      perspective: 1000px;
+      margin-bottom: 30px;
+    }
+
+    .stopwatch {
+      background: rgba(25, 25, 50, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px 30px;
+      box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.5),
+        inset 0 5px 15px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transform-style: preserve-3d;
+      transform: translateZ(20px);
+      transition: transform 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stopwatch::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+      z-index: -1;
+    }
+
+    .time-display {
+      font-size: 4.5rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px rgba(161, 196, 253, 0.3);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      min-width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transform: translateY(0);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn i {
+      font-size: 1.2rem;
+    }
+
+    .start-btn {
+      background: linear-gradient(to right, #00b09b, #96c93d);
+      color: white;
+    }
+
+    .pause-btn {
+      background: linear-gradient(to right, #ff8c00, #ffaa00);
+      color: white;
+    }
+
+    .lap-btn {
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+      color: white;
+    }
+
+    .reset-btn {
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      color: white;
+    }
+
+    .laps-container {
+      background: rgba(25, 25, 50, 0.5);
+      backdrop-filter: blur(5px);
+      border-radius: 15px;
+      padding: 20px;
+      max-height: 250px;
+      overflow-y: auto;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .laps-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 15px;
+      font-weight: 600;
+      color: #c2e9fb;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    .lap-list {
+      list-style: none;
+    }
+
+    .lap-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      animation: slideIn 0.3s ease-out;
+      transition: background 0.3s;
+    }
+
+    .lap-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .lap-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .lap-number {
+      color: #ff7e5f;
+      font-weight: 600;
+    }
+
+    .lap-time {
+      color: #a1c4fd;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+    }
+
+    .current-lap {
+      background: rgba(161, 196, 253, 0.15);
+      border: 1px solid rgba(161, 196, 253, 0.3);
+    }
+
+    .footer {
+      margin-top: 40px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      animation: fadeIn 2s ease-out;
+    }
+
+    /* Scrollbar styling */
+    .laps-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .laps-container::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+
+    .laps-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, #8e2de2, #4a00e0);
+      border-radius: 4px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Responsive design */
+    @media (max-width: 600px) {
+      .time-display {
+        font-size: 3.5rem;
+      }
+      
+      .header h1 {
+        font-size: 2.8rem;
+      }
+      
+      .buttons {
+        gap: 10px;
+      }
+      
+      .btn {
+        padding: 12px 20px;
+        min-width: 110px;
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .time-display {
+        font-size: 3rem;
+      }
+      
+      .header h1 {
+        font-size: 2.4rem;
+      }
+      
+      .buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .btn {
+        width: 100%;
+        max-width: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>PREMIUM STOPWATCH</h1>
+      <div class="subtitle">Precision Timing with Lap Feature</div>
+    </div>
+    
+    <div class="stopwatch-container">
+      <div class="stopwatch">
+        <div class="time-display" id="display">00:00:00</div>
+        
+        <div class="buttons">
+          <button class="btn start-btn" id="startBtn">
+            <i class="fas fa-play"></i> Start
+          </button>
+          <button class="btn pause-btn" id="pauseBtn">
+            <i class="fas fa-pause"></i> Pause
+          </button>
+          <button class="btn lap-btn" id="lapBtn">
+            <i class="fas fa-flag"></i> Lap
+          </button>
+          <button class="btn reset-btn" id="resetBtn">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+        
+        <div class="laps-container">
+          <div class="laps-header">
+            <span>Lap</span>
+            <span>Time</span>
+          </div>
+          <ul class="lap-list" id="lapList">
+            <!-- Lap items will be added here dynamically -->
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>Premium Stopwatch &copy; 2023 | Precision Timing Solutions</p>
+    </div>
+  </div>
+
+  <script>
+    // Stopwatch functionality
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+    let milliseconds = 0;
+    let timer = null;
+    let lapCount = 1;
+    let isRunning = false;
+    
+    // DOM Elements
+    const display = document.getElementById('display');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const lapBtn = document.getElementById('lapBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const lapList = document.getElementById('lapList');
+    
+    // Update display function
+    function updateDisplay() {
+      const h = hours.toString().padStart(2, '0');
+      const m = minutes.toString().padStart(2, '0');
+      const s = seconds.toString().padStart(2, '0');
+      display.textContent = `${h}:${m}:${s}`;
+    }
+    
+    // Main stopwatch function
+    function runStopwatch() {
+      milliseconds += 10;
+      
+      if (milliseconds === 100) {
+        milliseconds = 0;
+        seconds++;
+        
+        if (seconds === 60) {
+          seconds = 0;
+          minutes++;
+          
+          if (minutes === 60) {
+            minutes = 0;
+            hours++;
+          }
+        }
+      }
+      
+      updateDisplay();
+    }
+    
+    // Start the stopwatch
+    function startStopwatch() {
+      if (isRunning) return;
+      
+      isRunning = true;
+      timer = setInterval(runStopwatch, 100);
+      
+      // UI updates
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lapBtn.disabled = false;
+      resetBtn.disabled = false;
+    }
+    
+    // Pause the stopwatch
+    function pauseStopwatch() {
+      if (!isRunning) return;
+      
+      isRunning = false;
+      clearInterval(timer);
+      
+      // UI updates
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+    
+    // Reset the stopwatch
+    function resetStopwatch() {
+      pauseStopwatch();
+      
+      hours = 0;
+      minutes = 0;
+      seconds = 0;
+      milliseconds = 0;
+      lapCount = 1;
+      
+      updateDisplay();
+      lapList.innerHTML = '';
+      
+      // UI updates
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      lapBtn.disabled = true;
+    }
+    
+    // Record a lap time
+    function recordLap() {
+      if (!isRunning) return;
+      
+      const lapItem = document.createElement('li');
+      lapItem.className = 'lap-item';
+      if (lapCount === 1) {
+        lapItem.classList.add('current-lap');
+      }
+      
+      const lapTime = display.textContent;
+      
+      lapItem.innerHTML = `
+        <span class="lap-number">Lap ${lapCount}</span>
+        <span class="lap-time">${lapTime}</span>
+      `;
+      
+      // Add to the top of the list
+      if (lapList.firstChild) {
+        lapList.insertBefore(lapItem, lapList.firstChild);
+      } else {
+        lapList.appendChild(lapItem);
+      }
+      
+      // Highlight the latest lap
+      document.querySelectorAll('.lap-item').forEach(item => {
+        item.classList.remove('current-lap');
+      });
+      lapItem.classList.add('current-lap');
+      
+      lapCount++;
+    }
+    
+    // Event listeners
+    startBtn.addEventListener('click', startStopwatch);
+    pauseBtn.addEventListener('click', pauseStopwatch);
+    resetBtn.addEventListener('click', resetStopwatch);
+    lapBtn.addEventListener('click', recordLap);
+    
+    // Initialize
+    pauseBtn.disabled = true;
+    lapBtn.disabled = true;
+    updateDisplay();
+  </script>
+</body>
+</html>
